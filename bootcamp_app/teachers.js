@@ -11,13 +11,19 @@ const cohortName = process.argv[2];
 const maxLimit = process.argv[3]
 
 pool.query(`
-SELECT students.id, students.name AS student_name, cohorts.name AS cohort_name
-FROM students
+SELECT DISTINCT teachers.name AS teacher, 
+cohorts.name AS cohort
+FROM teachers
+JOIN assistance_requests ON assistance_requests.teacher_id = teachers.id
+JOIN students ON students.id = assistance_requests.student_id
 JOIN cohorts ON cohorts.id = students.cohort_id
 WHERE cohorts.name LIKE '${cohortName}%'
+ORDER BY teachers.name
 LIMIT ${maxLimit};
 `)
   .then(res => {
-    console.log(res.rows);
+    res.rows.forEach(object => {
+      console.log(`${object.cohort}: ${object.teacher}`);
+    })
   })
   .catch(err => console.error('query error', err.stack));
